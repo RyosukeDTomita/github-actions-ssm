@@ -1,0 +1,20 @@
+name: run EC2 command using SSM
+on:
+  push:
+
+env:
+  AWS_DEFAULT_REGION: ap-northeast-1
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: run EC2 command using SSM
+        uses: yinm/action-ec2-ssm@v1
+        with:
+          instance-id: i-092abd623591f2d17
+          command: sudo echo 'hello world' > /tmp/hello.txt
