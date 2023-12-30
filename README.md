@@ -1,4 +1,25 @@
-# github actions経由でコマンド実行
+# INDEX
+- [ABOUT](#ABOUT)
+- [ENVIRONMENT](#ENVIRONMENT)
+- [PREPARING](#PREPARING)
+- [HOW TO USE](#HOW-TO-USE)
+- [MEMO](#MEMO)
+******
+
+
+# ABOUT
+GitHub ActionsによりAWS CLIを使ってAWS SSM経由でコマンドをEC2インスタンスに対して送信するテストです。
+******
+
+
+# ENVIRONMENT
+- GitHub Actions
+    - AWS CLI
+- AWS EC2
+******
+
+
+# PREPARING
 ## EC2にSSM経路でアクセスできるようにする
 - IAMロールAmazonSSMManagedInstanceCoreをつける。
 - EC2インスタンスのAMIはAmazonLinux2推奨?2023はデフォルトでSSM Agentが入ってないのかも。
@@ -33,4 +54,10 @@ sudo systemctl status amazon-ssm-agent # ssh経由でログインできないな
 ![image](https://github.com/RyosukeDTomita/github-actions-ssm/assets/50137312/c0b718fe-5916-478d-97b5-c83d9e28554f)
 
 - [.github/workflows/run-commnnd-ssm.yml](.github/workflows/run-commnnd-ssm.yml)のEC2インスタンスのIDを書き換えする
-- push時にコマンドがEC2上で実行された(/tmp/test.txtが生成されているか)をEC2にログインして確認する。
+- push時にコマンドがEC2上で実行された(/tmp/test.txtが生成されているか)をEC2にログインして確認する(一応，コマンドのoutputはGitHubのリポジトリのページからも見れるが)。
+******
+
+
+## HOW TO USE
+just merge `master` branch or push `master` branch.
+masterブランチにmergeしたり，masterにpushしたらGitHub Actionsが起動します。

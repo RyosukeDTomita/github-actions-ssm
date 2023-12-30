@@ -35,7 +35,7 @@ jobs:
           export COMMAND_ID=$(aws ssm send-command \
             --document-name "AWS-RunShellScript" \
             --instance-ids ${{ env.EC2_INSTANCE_ID }} \
-            --parameters commands=["echo Hello","echo World"] \
+            --parameters commands=["echo Hello","echo World","echo Hello World > /tmp/test.txt"] \
             --output text \
             --query "Command.CommandId")
           # COMMAND_IDでコマンドの実行結果を出力。すぐ実行すると実行中になるのでsleepでちょっと待つ。
