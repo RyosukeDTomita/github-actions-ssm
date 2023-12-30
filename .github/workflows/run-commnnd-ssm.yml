@@ -1,12 +1,16 @@
-name: run EC2 command using SSM
+name: Execute commands on the EC2 instance through SSM and deploy automatically
+
 on:
+  # pull requestmainにマージされた時のみ実行する(mainへの直pushはbranchポリシーで弾く)
   push:
+    branches:
+      - master
 
 env:
   AWS_DEFAULT_REGION: ap-northeast-1
-
+  EC2_INSTANCE_ID: i-0c5f0371cb89a850d
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,12 +22,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-      - name: Run EC2 command using SSM
+      - name: Start EC2 instance and wait until the command can be executed.
+        id: start-ec2-service
+        run: |
+            aws ec2 start-instances --instance-ids ${{ env.EC2_INSTANCE_ID }} --region ${{ env.AWS_DEFAULT_REGION }} && aws ec2 wait instance-status-ok --instance-ids ${{ env.EC2_INSTANCE_ID }} --region ${{ env.AWS_DEFAULT_REGION}}
+      - name: check ec2 instance status
+        run: |
+            aws ec2 describe-instance-status --instance-ids ${{ env.EC2_INSTANCE_ID }}
+      - name: Execute commands on the EC2 instance through SSM to deploy /ManagementTools
         id: exec-ec2-command
         run: |
-            aws ssm send-command \
-              --document-name "AWS-RunShellScript" \
-              --instance-ids "i-0c5f0371cb89a850d" \
-              --parameters commands=["sudo echo hello world > /tmp/test.txt"] \
-              --output text \
-              --query "Command.CommandId"
+          export COMMAND_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --instance-ids ${{ env.EC2_INSTANCE_ID }} \
+            --parameters commands=["echo Hello","echo World"] \
+            --output text \
+            --query "Command.CommandId")
+          # COMMAND_IDでコマンドの実行結果を出力。すぐ実行すると実行中になるのでsleepでちょっと待つ。
+          sleep 3 && aws ssm list-command-invocations \
+            --command-id $COMMAND_ID \
+            --details | jq -r '.CommandInvocations[] | {CommandId, InstanceId, InstanceName, Output: .CommandPlugins[0].Output, Status}'
